@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.yourname.jiraiboxsweeper.controller.GameController">
+
+    <top>
+        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10;">
+            <Label text="Time:" />
+            <Label fx:id="timerLabel" text="00:00" />
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Reset" onAction="#onReset"/>
+        </HBox>
+    </top>
+
+    <center>
+        <GridPane fx:id="gridPane"
+                  hgap="2" vgap="2"
+                  style="-fx-padding: 10;">
+        </GridPane>
+    </center>
+
+    <bottom>
+        <VBox spacing="5" style="-fx-padding:10;">
+            <Label text="Ranking" style="-fx-font-size:14px; -fx-font-weight:bold;"/>
+            <TableView fx:id="scoreTable" prefHeight="150">
+                <columns>
+                    <TableColumn text="Rank" prefWidth="50"/>
+                    <TableColumn text="Name" prefWidth="150"/>
+                    <TableColumn text="Time(s)" prefWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </bottom>
+
+</BorderPane>
