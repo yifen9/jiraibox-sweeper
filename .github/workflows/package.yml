@@ -14,63 +14,44 @@ permissions:
 jobs:
   package-linux:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: temurin
-        java-version: 21
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
 
-    - name: Download JavaFX SDK
-      run: |
-        wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -O javafx-jmods.zip
-        unzip javafx-jmods.zip -d javafx-jmods
+      - name: Download JavaFX SDK
+        run: |
+          wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -O javafx-jmods.zip
+          unzip javafx-jmods.zip -d javafx-jmods
 
-    - name: Maven Build
-      run: mvn clean package -DskipTests
+      - name: Maven Build
+        run: mvn clean package -DskipTests
 
-    - name: jpackage
-      run: |
-        jpackage \
-          --input target \
-          --name JiraiBoxSweeper \
-          --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
-          --main-class com.yifen9.jiraiboxsweeper.Main \
-          --type app-image \
-          --module-path "javafx-jmods/javafx-jmods-21.0.7" \
-          --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
-          --dest dist
-      # --icon src/main/resources/icon.png `
+      - name: jpackage
+        run: |
+          jpackage \
+            --input target \
+            --name JiraiBoxSweeper \
+            --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
+            --main-class com.yifen9.jiraiboxsweeper.Main \
+            --type app-image \
+            --module-path "javafx-jmods/javafx-jmods-21.0.7" \
+            --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
+            --dest dist
+        # --icon src/main/resources/icon.png `
 
-    - name: Commit Artifact
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-
-        if git show-ref --quiet refs/heads/release; then
-          git checkout release
-        else
-          git checkout --orphan release
-        fi
-
-        git pull origin release
-
-        git rm -rf . || true
-        mkdir linux
-        cp -r dist/* linux/
-        git add linux/
-        git commit -m "Release Linux build from ${GITHUB_SHA::7} on main"
-    - name: Push to release
-      uses: ad-m/github-push-action@v0.6.0
-      with:
-        branch: release
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/
 
   package-windows:
     runs-on: windows-latest
@@ -106,20 +87,52 @@ jobs:
             --dest dist
         # --icon src/main/resources/icon.png `
 
-      - name: Commit Artifact
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/
+  
+  release:
+    runs-on: ubuntu-latest
+    needs: [package-linux, package-windows]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux
+          path: linux
+      
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows
+          path: windows
+      
+      - name: Push to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git checkout release
-          git pull origin release
-          git rm -rf windows || true
-          mkdir windows
-          cp -r dist/* windows/
-          git add windows/
-          git commit -m "Release Windows build from ${{ github.sha }}"
-      - name: Push to release
-        uses: ad-m/github-push-action@v0.6.0
+          git fetch origin release || true
+          git checkout -B release
+          git rm -rf . || true
+
+          git add linux windows
+          git commit -m "Release from ${{ github.sha }}"
+          git push --force https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} release
+    
+    delete:
+    needs:
+      - release
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: geekyeggo/delete-artifact@v5
         with:
-          branch: release
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          name: [linux, windows]
