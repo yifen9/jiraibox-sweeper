@@ -56,7 +56,7 @@ jobs:
         run: |
           jpackage \
             --input target \
-            --name JiraiboxSweeper \
+            --name Jiraibox Sweeper \
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
             --main-class com.yifen9.jiraiboxsweeper.Main \
             --type app-image \
@@ -114,7 +114,7 @@ jobs:
         run: |
           jpackage `
             --input target `
-            --name JiraiboxSweeper `
+            --name Jiraibox Sweeper `
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type msi `
@@ -176,7 +176,7 @@ jobs:
         run: |
           jpackage `
             --input target `
-            --name JiraiboxSweeper `
+            --name Jiraibox Sweeper `
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type app-image `
@@ -229,7 +229,7 @@ jobs:
           git checkout -B release
           git rm -rf . || true
 
-          git add linux windows
+          git add linux windows_msi windows_app-image
           git commit -m "Release from ${{ github.sha }}"
           git push --force https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} release
     
