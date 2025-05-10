@@ -43,7 +43,7 @@ jobs:
             --main-class com.yifen9.jiraiboxsweeper.Main \
             --type app-image \
             --module-path "javafx-jmods/javafx-jmods-21.0.7" \
-            --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
+            --add-modules java.base,java.logging,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
             --dest dist
         # --icon src/main/resources/icon.png `
 
@@ -84,7 +84,7 @@ jobs:
             --type app-image `
             --win-console `
             --module-path "javafx-jmods/javafx-jmods-21.0.7" `
-            --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml `
+            --add-modules java.base,java.logging,javafx.base,javafx.graphics,javafx.controls,javafx.fxml `
             --dest dist
         # --icon src/main/resources/icon.png `
 
