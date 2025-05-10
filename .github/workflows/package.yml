@@ -114,7 +114,7 @@ jobs:
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type app-image `
-            --icon src/main/resources/icon.png `
+            --icon src/main/resources/icon.ico `
             --win-console `
             --module-path "javafx-jmods/javafx-jmods-21.0.7" `
             --add-modules java.base,java.logging,javafx.base,javafx.graphics,javafx.controls,javafx.fxml,jdk.crypto.ec `
