@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-release:
+  package-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,11 +35,11 @@ jobs:
           --name JiraiBoxSweeper \
           --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
           --main-class com.yifen9.jiraiboxsweeper.Main \
-          --icon src/main/resources/icon.png \
           --type app-image \
           --module-path javafx-sdk/lib \
           --add-modules javafx.controls,javafx.fxml \
           --dest dist
+      # --icon src/main/resources/icon.png `
 
     - name: Prepare release branch
       run: |
@@ -62,3 +62,50 @@ jobs:
       with:
         branch: release
         github_token: ${{ secrets.GITHUB_TOKEN }}
+  package-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Download JavaFX SDK (Windows)
+        run: |
+          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-sdk.zip -OutFile javafx.zip
+          Expand-Archive javafx.zip -DestinationPath javafx-sdk
+
+      - name: Maven Build
+        run: mvn clean package -DskipTests
+
+      - name: jpackage for Windows
+        run: |
+          jpackage `
+            --input target `
+            --name JiraiBoxSweeper `
+            --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
+            --main-class com.yifen9.jiraiboxsweeper.Main `
+            --type exe `
+            --module-path javafx-sdk/lib `
+            --add-modules javafx.controls,javafx.fxml `
+            --dest dist
+        # --icon src/main/resources/icon.png `
+
+      - name: Commit Windows artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout release
+          git rm -rf . || true
+          cp -r dist/* .
+          git add .
+          git commit -m "Release Windows build from ${{ github.sha }}"
+      - name: Push Windows to release
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          branch: release
+          github_token: ${{ secrets.GITHUB_TOKEN }}
