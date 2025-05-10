@@ -38,7 +38,7 @@ jobs:
         run: |
           jpackage \
             --input target \
-            --name JiraiBoxSweeper \
+            --name JiraiboxSweeper \
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
             --main-class com.yifen9.jiraiboxsweeper.Main \
             --type app-image \
@@ -78,12 +78,13 @@ jobs:
         run: |
           jpackage `
             --input target `
-            --name JiraiBoxSweeper `
+            --name JiraiboxSweeper `
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
-            --type exe `
+            --type app-image `
             --module-path "javafx-jmods/javafx-jmods-21.0.7" `
             --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml `
+            --win-console false `
             --dest dist
         # --icon src/main/resources/icon.png `
 
@@ -91,11 +92,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: dist/
+          path: packaged/
   
   release:
     runs-on: ubuntu-latest
     needs: [package-linux, package-windows]
+    if: ${{ always() }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
