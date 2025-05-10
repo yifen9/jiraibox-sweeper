@@ -60,10 +60,10 @@ jobs:
         fi
 
         git rm -rf . || true
-
-        cp -r dist/* .
-        git add .
-        git commit -m "Release from ${GITHUB_SHA::7} on main"
+        mkdir linux
+        cp -r dist/* linux/
+        git add linux/
+        git commit -m "Release Linux build from ${GITHUB_SHA::7} on main"
     - name: Push to release
       uses: ad-m/github-push-action@v0.6.0
       with:
@@ -108,10 +108,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git checkout release
-          git rm -rf . || true
-          cp -r dist/* .
-          git add .
+          git pull origin release
+          git rm -rf windows || true
+          mkdir windows
+          cp -r dist/* windows/
+          git add windows/
           git commit -m "Release Windows build from ${{ github.sha }}"
       - name: Push to release
         uses: ad-m/github-push-action@v0.6.0
