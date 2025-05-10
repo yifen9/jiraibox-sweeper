@@ -84,7 +84,6 @@ jobs:
             --type app-image `
             --module-path "javafx-jmods/javafx-jmods-21.0.7" `
             --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml `
-            --win-console false `
             --dest dist
         # --icon src/main/resources/icon.png `
 
