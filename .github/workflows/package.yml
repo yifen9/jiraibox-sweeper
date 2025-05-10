@@ -56,7 +56,7 @@ jobs:
         run: |
           jpackage \
             --input target \
-            --name Jiraibox Sweeper \
+            --name "Jiraibox Sweeper" \
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
             --main-class com.yifen9.jiraiboxsweeper.Main \
             --type app-image \
@@ -114,7 +114,7 @@ jobs:
         run: |
           jpackage `
             --input target `
-            --name Jiraibox Sweeper `
+            --name "Jiraibox Sweeper" `
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type msi `
@@ -176,7 +176,7 @@ jobs:
         run: |
           jpackage `
             --input target `
-            --name Jiraibox Sweeper `
+            --name "Jiraibox Sweeper" `
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type app-image `
