@@ -28,18 +28,7 @@ jobs:
     - name: Build shaded JAR
       run: mvn clean package -DskipTests
 
-    - name: Generate custom runtime with jlink
-      run: |
-        jlink \
-          --strip-debug \
-          --compress=2 \
-          --no-header-files \
-          --no-man-pages \
-          --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" \
-          --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
-          --output custom-runtime
-
-    - name: Package using the custom runtime
+    - name: Package native image
       run: |
         jpackage \
           --input target \
@@ -47,8 +36,8 @@ jobs:
           --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
           --main-class com.yifen9.jiraiboxsweeper.Main \
           --type app-image \
-          --runtime-image custom-runtime \
-          --icon src/main/resources/icon.png \
+          --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" \
+          --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
           --dest dist
       # --icon src/main/resources/icon.png `
 
@@ -87,33 +76,22 @@ jobs:
 
       - name: Download JavaFX SDK (Windows)
         run: |
-          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -OutFile javafx-jmods.zip
+          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_windows-x64_bin-jmods.zip -OutFile javafx-jmods.zip
           Expand-Archive javafx-jmods.zip -DestinationPath javafx-jmods
 
       - name: Maven Build
         run: mvn clean package -DskipTests
 
-      - name: Generate custom runtime (Windows)
+      - name: jpackage for Windows
         run: |
-          jlink ^
-            --strip-debug ^
-            --compress=2 ^
-            --no-header-files ^
-            --no-man-pages ^
-            --module-path "%JAVA_HOME%\jmods;${{ github.workspace }}\javafx-jmods" ^
-            --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml ^
-            --output custom-runtime
-
-      - name: jpackage .exe with custom runtime
-        run: |
-          jpackage ^
-            --input target ^
-            --name JiraiBoxSweeper ^
-            --main-jar jiraibox-sweeper-0.1.0-shaded.jar ^
-            --main-class com.yifen9.jiraiboxsweeper.Main ^
-            --type exe ^
-            --runtime-image custom-runtime ^
-            --icon src/main/resources/icon.ico ^
+          jpackage `
+            --input target `
+            --name JiraiBoxSweeper `
+            --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
+            --main-class com.yifen9.jiraiboxsweeper.Main `
+            --type exe `
+            --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" `
+            --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml `
             --dest dist
         # --icon src/main/resources/icon.png `
 
