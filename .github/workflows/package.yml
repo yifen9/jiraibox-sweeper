@@ -59,6 +59,8 @@ jobs:
           git checkout --orphan release
         fi
 
+        git pull origin release
+
         git rm -rf . || true
         mkdir linux
         cp -r dist/* linux/
