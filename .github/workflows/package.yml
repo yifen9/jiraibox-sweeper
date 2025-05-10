@@ -41,6 +41,8 @@ jobs:
         with:
           path: javafx-jmods-21.0.7
           key: ${{ runner.os }}-javafx-jmods-21.0.7
+          restore-keys: |
+            ${{ runner.os }}-javafx-jmods-21.0.7
 
       - name: Download JavaFX jmods
         run: |
@@ -97,6 +99,8 @@ jobs:
         with:
           path: javafx-jmods-21.0.7
           key: ${{ runner.os }}-javafx-jmods-21.0.7
+          restore-keys: |
+            ${{ runner.os }}-javafx-jmods-21.0.7
 
       - name: Download JavaFX jmods
         run: |
