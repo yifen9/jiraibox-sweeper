@@ -36,7 +36,7 @@ jobs:
           --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
           --main-class com.yifen9.jiraiboxsweeper.Main \
           --type app-image \
-          --module-path javafx-sdk/lib \
+          --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" \
           --add-modules javafx.controls,javafx.fxml \
           --dest dist
       # --icon src/main/resources/icon.png `
@@ -90,7 +90,7 @@ jobs:
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type exe `
-            --module-path javafx-sdk/lib `
+            --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" `
             --add-modules javafx.controls,javafx.fxml `
             --dest dist
         # --icon src/main/resources/icon.png `
