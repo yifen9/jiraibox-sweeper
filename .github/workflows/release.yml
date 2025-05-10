@@ -22,7 +22,7 @@ jobs:
 
     - name: Download JavaFX SDK
       run: |
-        wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -O javafx.zip
+        wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-sdk.zip -O javafx.zip
         unzip javafx.zip -d javafx-sdk
 
     - name: Build shaded JAR
@@ -36,7 +36,7 @@ jobs:
           --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
           --main-class com.yifen9.jiraiboxsweeper.Main \
           --type app-image \
-          --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" \
+          --module-path javafx-sdk/lib \
           --add-modules javafx.controls,javafx.fxml \
           --dest dist
       # --icon src/main/resources/icon.png `
@@ -76,7 +76,7 @@ jobs:
 
       - name: Download JavaFX SDK (Windows)
         run: |
-          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -OutFile javafx.zip
+          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-sdk.zip -OutFile javafx.zip
           Expand-Archive javafx.zip -DestinationPath javafx-sdk
 
       - name: Maven Build
@@ -90,7 +90,7 @@ jobs:
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type exe `
-            --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" `
+            --module-path javafx-sdk/lib `
             --add-modules javafx.controls,javafx.fxml `
             --dest dist
         # --icon src/main/resources/icon.png `
