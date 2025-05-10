@@ -90,7 +90,7 @@ jobs:
             --main-jar jiraibox-sweeper-0.1.0-shaded.jar `
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type exe `
-            --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" `
+            --module-path "javafx-jmods" `
             --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml `
             --dest dist
         # --icon src/main/resources/icon.png `
