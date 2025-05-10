@@ -119,7 +119,9 @@ jobs:
             --main-class com.yifen9.jiraiboxsweeper.Main `
             --type msi `
             --icon src/main/resources/icon.ico `
-            --win-console `
+            --win-menu `
+            --win-shortcut `
+            --win-dir-chooser `
             --module-path "javafx-jmods/javafx-jmods-21.0.7" `
             --add-modules java.base,java.logging,javafx.base,javafx.graphics,javafx.controls,javafx.fxml,jdk.crypto.ec `
             --dest dist
