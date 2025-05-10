@@ -22,7 +22,7 @@ jobs:
 
     - name: Download JavaFX SDK
       run: |
-        wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -O javafx.zip
+        wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -O javafx-jmods.zip
         unzip javafx-jmods.zip -d javafx-jmods
 
     - name: Build shaded JAR
@@ -76,7 +76,7 @@ jobs:
 
       - name: Download JavaFX SDK (Windows)
         run: |
-          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -OutFile javafx.zip
+          Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -OutFile javafx-jmods.zip
           Expand-Archive javafx-jmods.zip -DestinationPath javafx-jmods
 
       - name: Maven Build
