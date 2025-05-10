@@ -133,6 +133,12 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-      - uses: geekyeggo/delete-artifact@v5
+      - name: Delete Linux Artifact
+        uses: geekyeggo/delete-artifact@v5
         with:
-          name: [linux, windows]
+          name: linux
+      
+      - name: Delete Windows Artifact
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: windows
