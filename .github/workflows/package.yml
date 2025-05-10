@@ -1,15 +1,22 @@
-name: Build & Release
+name: Package
 
 on:
   push:
     branches: [ main ]
+
+concurrency:
+  group: package
+  cancel-in-progress: true
+
+permission:
+  contents: write
 
 jobs:
   package-linux:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -25,10 +32,10 @@ jobs:
         wget https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_linux-x64_bin-jmods.zip -O javafx-jmods.zip
         unzip javafx-jmods.zip -d javafx-jmods
 
-    - name: Build shaded JAR
+    - name: Maven Build
       run: mvn clean package -DskipTests
 
-    - name: Package native image
+    - name: jpackage
       run: |
         jpackage \
           --input target \
@@ -36,12 +43,12 @@ jobs:
           --main-jar jiraibox-sweeper-0.1.0-shaded.jar \
           --main-class com.yifen9.jiraiboxsweeper.Main \
           --type app-image \
-          --module-path "$JAVA_HOME/jmods:$(pwd)/javafx-jmods" \
+          --module-path "javafx-jmods/javafx-jmods-21.0.7" \
           --add-modules java.base,javafx.base,javafx.graphics,javafx.controls,javafx.fxml \
           --dest dist
       # --icon src/main/resources/icon.png `
 
-    - name: Prepare release branch
+    - name: Commit Artifact
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -57,15 +64,17 @@ jobs:
         cp -r dist/* .
         git add .
         git commit -m "Release from ${GITHUB_SHA::7} on main"
-    - name: Push to release branch
+    - name: Push to release
       uses: ad-m/github-push-action@v0.6.0
       with:
         branch: release
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
   package-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
       - name: Set up JDK
@@ -74,7 +83,7 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Download JavaFX SDK (Windows)
+      - name: Download JavaFX SDK
         run: |
           Invoke-WebRequest https://download2.gluonhq.com/openjfx/21.0.7/openjfx-21.0.7_windows-x64_bin-jmods.zip -OutFile javafx-jmods.zip
           Expand-Archive javafx-jmods.zip -DestinationPath javafx-jmods
@@ -82,7 +91,7 @@ jobs:
       - name: Maven Build
         run: mvn clean package -DskipTests
 
-      - name: jpackage for Windows
+      - name: jpackage
         run: |
           jpackage `
             --input target `
@@ -95,7 +104,7 @@ jobs:
             --dest dist
         # --icon src/main/resources/icon.png `
 
-      - name: Commit Windows artifacts
+      - name: Commit Artifact
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -104,7 +113,7 @@ jobs:
           cp -r dist/* .
           git add .
           git commit -m "Release Windows build from ${{ github.sha }}"
-      - name: Push Windows to release
+      - name: Push to release
         uses: ad-m/github-push-action@v0.6.0
         with:
           branch: release
