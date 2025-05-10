@@ -52,141 +52,126 @@ public class Game {
     private final TableView<Stat> statsTable = new TableView<>();
     private final ObservableList<Stat> statsList = FXCollections.observableArrayList();
 
+    private final CheckBox autoUploadCheck = new CheckBox("Auto Record");
+    private final TextField nameField = new TextField();
+
     Group boardGroup = new Group(gridPane);
     StackPane boardHolder = new StackPane(boardGroup);
 
     public Game() {
         board = new Board();
-        timer = new Timer(() -> {
-            this.updateTimer();   // 这会更新 timerLabel
-            this.updateStats();   // 新增：把最新 time/mines 写入表格
-        });
+        timer = new Timer(() -> {this.updateTimer(); this.updateStats();});
         firebase = new Firebase();
         timer.reset();
         loadAllRanking();
     }
 
     public Parent createContent() {
-        // 1. 根 GridPane 三列一行，横向 20/60/20%，纵向 100%
+        // Root layout
         GridPane root = new GridPane();
         root.setPadding(new Insets(10));
         root.setHgap(10);
         ColumnConstraints c1 = new ColumnConstraints(); c1.setPercentWidth(20);
         ColumnConstraints c2 = new ColumnConstraints(); c2.setPercentWidth(60);
         ColumnConstraints c3 = new ColumnConstraints(); c3.setPercentWidth(20);
-        root.getColumnConstraints().addAll(c1, c2, c3);
-        RowConstraints r = new RowConstraints();
-        r.setVgrow(Priority.ALWAYS);
-        r.setPercentHeight(100);
-        root.getRowConstraints().add(r);
+        root.getColumnConstraints().addAll(c1,c2,c3);
+        RowConstraints rr = new RowConstraints();
+        rr.setVgrow(Priority.ALWAYS);
+        rr.setPercentHeight(100);
+        root.getRowConstraints().add(rr);
 
+        // Left panel
         initStatsTable();
         updateStats();
 
-        // 在 createContent() 里，替换左侧部分为：
-        GridPane leftPane = new GridPane();
-        leftPane.setVgap(10);
-// 单列
-        ColumnConstraints lc = new ColumnConstraints();
-        lc.setPercentWidth(100);
-        leftPane.getColumnConstraints().add(lc);
-// 三行：row0、row2 固定为“宽度 = 左侧面板宽度”（正方形），row1 自由拉伸
-        RowConstraints r0 = new RowConstraints();
-        r0.setVgrow(Priority.NEVER);
-        r0.prefHeightProperty().bind(leftPane.widthProperty());
-        RowConstraints r1 = new RowConstraints();
-        r1.setVgrow(Priority.ALWAYS);
-        RowConstraints r2 = new RowConstraints();
-        r2.setVgrow(Priority.NEVER);
-        r2.prefHeightProperty().bind(leftPane.widthProperty());
-        leftPane.getRowConstraints().addAll(r0, r1, r2);
+        GridPane left = new GridPane();
+        left.setVgap(10);
+        left.setPadding(new Insets(0));
+        ColumnConstraints lc = new ColumnConstraints(); lc.setPercentWidth(100);
+        left.getColumnConstraints().add(lc);
+        RowConstraints r0 = new RowConstraints(); r0.prefHeightProperty().bind(left.widthProperty()); r0.setVgrow(Priority.NEVER);
+        RowConstraints r1 = new RowConstraints(); r1.setVgrow(Priority.ALWAYS);
+        RowConstraints r2 = new RowConstraints(); r2.prefHeightProperty().bind(left.widthProperty()); r2.setVgrow(Priority.NEVER);
+        left.getRowConstraints().addAll(r0,r1,r2);
 
-        // 3. 中间棋盘：复用你的缩放逻辑
-        initGrid();
+        // Row0: stats table (square)
+        left.add(statsTable,0,0);
 
-        leftPane.add(statsTable, 0, 0);
+        // Row1: module pane and reset
+        GridPane module = new GridPane();
+        module.setHgap(5); module.setVgap(5);
+        ColumnConstraints mcol = new ColumnConstraints(); mcol.setPercentWidth(50);
+        module.getColumnConstraints().addAll(mcol, mcol);
+        autoUploadCheck.prefWidthProperty().bind(module.widthProperty().multiply(0.5));
+        nameField.setPromptText("Player name");
+        nameField.prefWidthProperty().bind(module.widthProperty().multiply(0.5));
+        module.add(autoUploadCheck,0,0);
+        module.add(nameField,1,0);
 
-        // 2) 在 createContent() 里，Reset 按钮绑定成宽度的 80%，高度绑定为宽度的 40%
-        Button resetBtn = new Button("Reset");
-        resetBtn.setOnAction(e -> {
-            onReset();
-            updateStats();
-        });
-// 宽度 80%
-        resetBtn.prefWidthProperty().bind(leftPane.widthProperty().multiply(1));
-// 高度 = 宽度 * 0.4（可根据你需要调整比例）
-        resetBtn.prefHeightProperty().bind(resetBtn.prefWidthProperty().multiply(0.33));
-// 2) 中间：Reset 按钮，居中，宽度 80% 左侧宽度
-        resetBtn.setMaxWidth(Double.MAX_VALUE);
-        resetBtn.setOnAction(e -> onReset());
-        GridPane.setHalignment(resetBtn, HPos.CENTER);
-        GridPane.setValignment(resetBtn, VPos.CENTER);
-        leftPane.add(resetBtn, 0, 1);
+        Button reset = new Button("Reset");
+        reset.setOnAction(e->{ onReset(); updateStats();});
+        reset.prefWidthProperty().bind(module.widthProperty().multiply(0.8));
+        reset.prefHeightProperty().bind(reset.prefWidthProperty().multiply(0.4));
+        reset.setMaxWidth(Double.MAX_VALUE);
+        VBox vbox = new VBox(10,module,reset);
+        vbox.setAlignment(Pos.CENTER);
+        VBox.setVgrow(vbox, Priority.ALWAYS);
+        left.add(vbox,0,1);
 
-// 3) 底部：动画区 Pane（正方形），放左下角
-        Pane animPane = new Pane();
-// 不需要背景
-// 绑定宽高为正方形
-        animPane.prefHeightProperty().bind(leftPane.widthProperty());
-        animPane.prefWidthProperty().bind(animPane.prefHeightProperty());
-        StackPane animHolder = new StackPane(animPane);
+        // Row2: animation pane (square)
+        Pane anim = new Pane();
+        anim.prefHeightProperty().bind(left.widthProperty());
+        anim.prefWidthProperty().bind(anim.prefHeightProperty());
+        StackPane animHolder = new StackPane(anim);
         animHolder.setAlignment(Pos.BOTTOM_LEFT);
-        leftPane.add(animHolder, 0, 2);
+        left.add(animHolder,0,2);
 
-// 把 leftPane 加入根布局
-        root.add(leftPane, 0, 0);
+        root.add(left,0,0);
 
+        // Center: board
+        initGrid();
         StackPane holder = new StackPane(boardGroup);
+        holder.setMinSize(0,0);
         holder.setAlignment(Pos.CENTER);
-        holder.setMinSize(0, 0);
-        boardGroup.getTransforms().add(new Scale(1, 1, boardWidth/2, boardHeight/2));
-        holder.layoutBoundsProperty().addListener((o, oldB, newB) -> {
-            double sX = newB.getWidth()  / boardWidth  * 0.75;
-            double sY = newB.getHeight() / boardHeight * 0.75;
-            double s  = Math.min(sX, sY);
-            gridPane.setScaleX(s);
-            gridPane.setScaleY(s);
+        boardGroup.getTransforms().add(new Scale(1,1,boardWidth/2,boardHeight/2));
+        holder.layoutBoundsProperty().addListener((o,old,n)->{
+            double sx = n.getWidth()/boardWidth*0.75;
+            double sy = n.getHeight()/boardHeight*0.75;
+            double s = Math.min(sx,sy);
+            gridPane.setScaleX(s); gridPane.setScaleY(s);
         });
-        root.add(holder, 1, 0);
+        root.add(holder,1,0);
 
-        // 4. 右侧排行榜：列宽按比例，Name 列自动换行
+        // Right: ranking
         initRankingTable();
         rankingTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        // 假设 10% / 60% / 30%
-        TableColumn<Score, ?> rankCol = rankingTable.getColumns().get(0);
-        TableColumn<Score,String> nameCol =
-                (TableColumn<Score,String>) rankingTable.getColumns().get(1);
-        TableColumn<Score, ?> timeCol = rankingTable.getColumns().get(2);
-        rankCol.prefWidthProperty().bind(rankingTable.widthProperty().multiply(0.10));
-        nameCol.prefWidthProperty().bind(rankingTable.widthProperty().multiply(0.60));
-        timeCol.prefWidthProperty().bind(rankingTable.widthProperty().multiply(0.30));
-        // Name 列换行
-        nameCol.setCellFactory(col -> new TableCell<Score, String>() {
-            Label wrap = new Label();
+        TableColumn<Score,?> rc = rankingTable.getColumns().get(0);
+        TableColumn<Score,String> nc = (TableColumn<Score,String>)rankingTable.getColumns().get(1);
+        TableColumn<Score,?> tc = rankingTable.getColumns().get(2);
+        rc.prefWidthProperty().bind(rankingTable.widthProperty().multiply(0.1));
+        nc.prefWidthProperty().bind(rankingTable.widthProperty().multiply(0.6));
+        tc.prefWidthProperty().bind(rankingTable.widthProperty().multiply(0.3));
+        nc.setCellFactory(col->new TableCell<Score,String>(){
+            Label w=new Label();
             {
-                wrap.setWrapText(true);
-                wrap.prefWidthProperty().bind(col.widthProperty().subtract(10));
-                setGraphic(wrap);
-                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                w.setWrapText(true);
+                w.prefWidthProperty().bind(col.widthProperty().subtract(10));
+                setGraphic(w); setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             }
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                wrap.setText(empty ? null : item);
+                w.setText(empty ? null : item);
             }
         });
-
-        // 4.1 绑定并排序
-        SortedList<Score> sorted = new SortedList<>(rawRanking);
-        sorted.comparatorProperty().bind(rankingTable.comparatorProperty());
-        rankingTable.setItems(sorted);
-        rankingTable.getSortOrder().setAll(timeCol);
-        timeCol.setSortType(TableColumn.SortType.ASCENDING);
-
-        VBox right = new VBox(10, rankingTable);
-        right.setFillWidth(true);
-        VBox.setVgrow(rankingTable, Priority.ALWAYS);
-        root.add(right, 2, 0);
+        SortedList<Score> sl=new SortedList<>(rawRanking);
+        sl.comparatorProperty().bind(rankingTable.comparatorProperty());
+        rankingTable.setItems(sl);
+        rankingTable.getSortOrder().setAll(tc);
+        tc.setSortType(TableColumn.SortType.ASCENDING);
+        VBox right=new VBox(10,rankingTable);
+        right.setFillWidth(true); VBox.setVgrow(rankingTable,Priority.ALWAYS);
+        root.add(right,2,0);
 
         return root;
     }
@@ -292,13 +277,17 @@ public class Game {
             timer.stop();
             showAllMines();
             int t = timer.getSeconds();
-            TextInputDialog dlg = new TextInputDialog();
-            dlg.setHeaderText("Finnished with " + t + " seconds! Now leave your name");
-            Optional<String> name = dlg.showAndWait();
-            name.ifPresent(n -> {
-                addScore(n, t);
-                loadAllRanking();
-            });
+            if(autoUploadCheck.isSelected() && !nameField.getText().trim().isEmpty()) {
+                String player = nameField.getText().trim();
+                if(!player.isEmpty()) addScore(player, t);
+            } else {
+                TextInputDialog dlg = new TextInputDialog();
+                dlg.setHeaderText("Finnished with " + t + " seconds! Now leave your name");
+                Optional<String> name = dlg.showAndWait();
+                name.ifPresent(n -> {
+                    addScore(n, t);
+                    loadAllRanking();
+            });}
         }
     }
 
